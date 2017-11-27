@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width,
+                   height=device-height,
+                   initial-scale=1.0,
+                   user-scalable=no,
+                   minimum-scale=1.0,
+                   maximum-scale=1.0">
+    <title>测试</title>
+    <link rel="stylesheet" href="css/show.css">
+</head>
+<body>
+<div class="detail" id="first">
+    <h3>测测你生活在古代长得什么样子（女）？</h3>
+    <dl>
+        <dd>
+            <div style="float:right;padding:5px;"><img src="images/gudai.jpg" id="def_pic" width="120"></div>
+            &nbsp;&nbsp;&nbsp;&nbsp;人人也都有穿越梦想，你也有吗？想知道你在古代长得什么样子吗？赶紧来做个测试吧！<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;通过对你的 <strong>血型，身高，体重，头像</strong> 进行分析，测测你最像哪个球星。
+        </dd>
+        <div class="con_xx">血型：<select>
+            <option value="1">A</option>
+            <option value="2">B</option>
+            <option value="3">AB</option>
+            <option value="4">O</option>
+            <option value="5">不知</option>
+        </select></div>
+        <div class="con_xx">身高：<select>
+            <option value="1">160以下</option>
+            <option value="2">161-170</option>
+            <option value="3">171-180</option>
+            <option value="4">180以上</option>
+        </select></div>
+        <div class="con_xx">体重：<select>
+            <option value="1">50公斤以下</option>
+            <option value="2">51-60公斤</option>
+            <option value="3">61-70公斤</option>
+            <option value="4">71-80公斤</option>
+            <option value="5">81公斤以上</option>
+        </select></div>
+        <dd><a href="javascript:;" class="ceshi_start" id="starts">开始测试</a></dd>
+        <dd class="remark">本站不会存储您的任何个人信息，请放心测试。</dd>
+    </dl>
+</div>
+<div id="jindu" class="none">
+    <div id="message">正在对你的 <strong>血型，身高，体重，头像</strong> 进行分析...</div>
+    <div id="loading">
+        <div style="width: 0">0</div>
+    </div>
+</div>
+<div id="con" class="none">
+    <div class="info" id="info">测试出来你在古代长得是这个样子的：<br>
+        （刮开图层有惊喜！！）<br>
+        ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓
+    </div>
+    <div id="container">
+        <canvas disable-scroll="true" bindtouchstart="touchStart" bindtouchmove="touchMove" bindtouchend="touchEnd" id="myCanvas"></canvas>
+    </div>
+</div>
+</body>
+<script src="js/jquery-1.8.3.min.js"></script>
+<script type="text/javascript" src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+<script src="http://v.chinabyte.com/wx_share/share.js"></script>
+<script>
+  $(function () {
+//微信分享
+    var datas = {
+      title: "测测你生活在古代长得什么样子（女）",
+      desc: "人人也都有穿越梦想，你也有吗？想知道你在古代长得什么样子吗？赶紧来做个测试吧！",
+      imgUrl: "http://www.chinabyte.com/w/n/yanghao/img/171122/gudai.jpg"
+    }
+    share(datas);
+  });
+</script>
+<script>
+  var num = 0;
+  var first = document.getElementById('first');
+  var jindu = document.getElementById('jindu');
+  var load = document.getElementById('loading');
+  var loaddiv = load.getElementsByTagName('div')[0];
+  var con = document.getElementById('con');
+  var img = document.getElementById('container');
+  var timer;
+  var imgArr = ['3D2A0096_825V6_600x900.jpg','3D2A0096_825V6_600x900.jpg','3D2A0125_5NDP5_600x900.jpg','CD743F332FEEDA046A81D87A6BFA1C191-41_600x900.jpg',
+    '480549C0029A5C15ABEC59C47F353EA91-50_600x900.jpg','fff_61QOP_600x900.jpg','FF_K63Z9_600x900.jpg'
+  ];
+  window.onload = function () {
+    var sub = document.getElementById('starts')
+    sub.addEventListener('click',function () {
+      first.className = 'none'
+      jindu.className = ''
+      document.querySelector('body').addEventListener('touchmove', function(e) {
+        e.preventDefault()
+      })
+      random();
+      timer = setInterval(loadTime, 10);
+      init();
+    })
+  };
+  //load
+  function loadTime() {
+    num++;
+    loaddiv.innerHTML = num + '%';
+    loaddiv.style.width = num + '%';
+    if (num === 101) {
+      clearInterval(timer)
+      jindu.className = 'none'
+      con.className = ''
+    }
+  }
+  //    init canvas
+  function init() {
+
+    var myCanvasObject = document.getElementById("myCanvas");
+    myCanvasObject.width = window.innerWidth*0.8
+    myCanvasObject.height = window.innerWidth*0.8
+    var width = myCanvasObject.width;
+    var height = myCanvasObject.height;
+    var ctx = myCanvasObject.getContext("2d");
+
+    //绘制黑色矩形
+    ctx.beginPath();
+    ctx.fillStyle = "#939393";
+    ctx.rect(0, 0, width, height);
+    ctx.closePath();
+    ctx.fill();
+
+    var isDown = false; //鼠标是否按下标志
+    var pointerArr = []; //鼠标移动坐标数组
+    var xPointer = 0;//鼠标当前x坐标
+    var yPointer = 0;//鼠标当前y坐标
+
+    //pc，移动事件兼容写法
+    var hastouch = "ontouchstart" in window ? true : false,
+      tapstart = hastouch ? "touchstart" : "mousedown",
+      tapmove = hastouch ? "touchmove" : "mousemove",
+      tapend = hastouch ? "touchend" : "mouseup";
+
+    //鼠标按下
+    myCanvasObject.addEventListener(tapstart, function (e) {
+      this.style.cursor = "move";
+      isDown = true;
+      xPointer = hastouch ? e.targetTouches[0].pageX - this.offsetLeft: e.clientX - this.offsetLeft;
+      yPointer = hastouch ? e.targetTouches[0].pageY - this.offsetTop: e.clientY - this.offsetTop;
+      console.log(xPointer);
+      console.log(yPointer);
+      pointerArr.push([xPointer, yPointer]);
+      circleReset(ctx);
+    });
+
+    //鼠标按下后拖动
+    myCanvasObject.addEventListener(tapmove, function (e) {
+      if (isDown) {
+        xPointer = hastouch ? e.targetTouches[0].pageX - this.offsetLeft : e.clientX - this.offsetLeft;
+
+        yPointer = hastouch ? e.targetTouches[0].pageY - this.offsetTop: e.clientY - this.offsetTop;
+
+        pointerArr.push([xPointer, yPointer]);
+        circleReset(ctx);
+      }
+
+    })
+
+
+    //鼠标抬起取消事件
+    myCanvasObject.addEventListener(tapend, function (e) {
+      isDown = false;
+      pointerArr = [];
+    });
+
+    //圆形橡皮檫
+    function circleReset(ctx) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(pointerArr[0][0], pointerArr[0][1]);
+      ctx.lineCap = "round";　　 //设置线条两端为圆弧
+      ctx.lineJoin = "round";　　 //设置线条转折为圆弧
+      ctx.lineWidth = 60;
+      ctx.globalCompositeOperation = "destination-out";
+      if (pointerArr.length == 1) {
+        ctx.lineTo(pointerArr[0][0] + 1, pointerArr[0][1] + 1);
+      } else {
+        for (var i = 1; i < pointerArr.length; i++) {
+          ctx.lineTo(pointerArr[i][0], pointerArr[i][1]);
+          ctx.moveTo(pointerArr[i][0], pointerArr[i][1]);
+        }
+      }
+      ctx.closePath();
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+  // image random
+  function random() {
+    img.style.background = "url('images/ctnimg/" + imgArr[Math.floor(Math.random() * imgArr.length)] + "') center no-repeat"
+    img.style.width = Math.ceil(window.innerWidth*0.8)+'px'
+    img.style.height = Math.ceil(window.innerWidth*0.8)+'px'
+  }
+
+</script>
+</html>
